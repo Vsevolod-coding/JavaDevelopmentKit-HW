@@ -14,7 +14,7 @@ public class ServerWindow extends JFrame {
     private JButton startBtn;
     private JButton stopBtn;
     private boolean isRunning = false;
-    private final String HISTORY_LOG_FILE = "Homework_1/src/chat_history.txt";
+    private final String HISTORY_LOG_FILE = "chat_history.txt";
     private ArrayList<ClientGUI> connectedClients = new ArrayList<>();
 
     public ServerWindow() {
@@ -65,6 +65,7 @@ public class ServerWindow extends JFrame {
     private void stopServer() {
         isRunning = false;
         logMessage("Server stopped.");
+
         startBtn.setEnabled(true);
         stopBtn.setEnabled(false);
     }
@@ -86,7 +87,6 @@ public class ServerWindow extends JFrame {
             System.err.println("Error while saving messages into the file.");
             e.printStackTrace();
         }
-        updateClients(message);
     }
 
     private void checkAndOrCreateHistoryFile() {
@@ -117,6 +117,13 @@ public class ServerWindow extends JFrame {
     private void updateClients(String message) {
         for (ClientGUI client : connectedClients) {
             client.updateChatHistory(message);
+        }
+    }
+
+    public void receiveMessage(String message) {
+        if (isRunning) {
+            logMessage(message);
+            updateClients(message);
         }
     }
 }

@@ -11,18 +11,18 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class ClientGUI extends JFrame {
-    private JTextArea chatHistory;
-    private JTextField msgField;
-    private JButton sendBtn;
-    private ServerWindow server;
+    private final JTextArea chatHistory = new JTextArea();
+    private final JTextField msgField = new JTextField();
+    private final JButton sendBtn = new JButton("Send");
+    private final ServerWindow server;
 
-    private JTextField ipField;
-    private JTextField portField;
-    private JTextField nameField;
-    private JPasswordField passwordField;
-    private JButton loginBtn;
-    private JPanel loginPanel;
-    private JPanel chatPanel;
+    private final JPanel loginPanel = new JPanel(new GridLayout(2,3, 5, 5));
+    private final JTextField ipField = new JTextField("localhost");
+    private final JTextField portField = new JTextField("8888");
+    private final JTextField nameField = new JTextField();
+    private final JPasswordField passwordField = new JPasswordField("12345678");
+    private final JButton loginBtn = new JButton("Login");
+    private final JPanel chatPanel = new JPanel(new BorderLayout());
 
     private boolean isConnected = false;
     private String clientName;
@@ -36,38 +36,18 @@ public class ClientGUI extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
 
-        // Панель для входа
-        loginPanel = new JPanel(new GridLayout(5,2,10,10));
-        ipField = new JTextField();
-        portField = new JTextField();
-        nameField = new JTextField();
-        passwordField = new JPasswordField();
-        loginBtn = new JButton("Login");
+        ipField.setEditable(false);
+        portField.setEditable(false);
+        passwordField.setEditable(false);
 
-        loginPanel.add(new JLabel("IP:"));
         loginPanel.add(ipField);
-        loginPanel.add(new JLabel("Port:"));
         loginPanel.add(portField);
-        loginPanel.add(new JLabel("Your name:"));
-        loginPanel.add(nameField);
-        loginPanel.add(new JLabel("Password:"));
         loginPanel.add(passwordField);
-        loginPanel.add(new JLabel(""));
+        loginPanel.add(new JLabel("Enter your name:"));
+        loginPanel.add(nameField);
         loginPanel.add(loginBtn);
 
-        // Панель для чата
-        chatPanel = new JPanel(new BorderLayout());
-        chatHistory = new JTextArea();
         chatHistory.setEditable(false);
-        msgField = new JTextField();
-        sendBtn = new JButton("Send");
-
-        sendBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                sendMessage();
-            }
-        });
 
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(msgField, BorderLayout.CENTER);
@@ -77,7 +57,21 @@ public class ClientGUI extends JFrame {
         chatPanel.add(scrollPane, BorderLayout.CENTER);
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
 
-        add(loginPanel);
+        add(loginPanel, BorderLayout.NORTH);
+
+        msgField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage();
+            }
+        });
+
+        sendBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage();
+            }
+        });
 
         loginBtn.addActionListener(new ActionListener() {
             @Override
@@ -129,13 +123,14 @@ public class ClientGUI extends JFrame {
     }
 
     private void sendMessage() {
-        if (isConnected) {
-            String message = msgField.getText().trim();
-            if (!message.isEmpty()) {
+        String message = msgField.getText().trim();
+        if (!message.isEmpty()) {
+            if (server.isRunning()) {
                 String formattedMsg = clientName + ": " + message;
-                chatHistory.append(formattedMsg + "\n");
-                server.logMessage(formattedMsg);
+                server.receiveMessage(formattedMsg);
                 msgField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Сервер остановлен. Сообщения не могут быть отправлены.", "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

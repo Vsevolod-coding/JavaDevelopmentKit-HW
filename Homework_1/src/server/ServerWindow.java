@@ -10,28 +10,42 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class ServerWindow extends JFrame {
-    private JTextArea serverLog;
-    private JButton startBtn;
-    private JButton stopBtn;
+    private final static int WIN_WIDTH = 450;
+    private final static int WIN_HEIGHT = 350;
+
+    private final JTextArea serverLog = new JTextArea();
+    private final JButton startBtn = new JButton("Start");
+    private final JButton stopBtn = new JButton("Stop");
+    private ArrayList<ClientGUI> clients = new ArrayList<>();
+
+    private final String PATH_TO_HISTORY_LOG_FILE = "src/chat_history.txt";
     private boolean isRunning = false;
-    private final String HISTORY_LOG_FILE = "Homework_1/src/chat_history.txt";
-    private ArrayList<ClientGUI> connectedClients = new ArrayList<>();
 
     public ServerWindow() {
-        setTitle("Server");
-        setSize(450,350);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        checkAndOrCreateHistoryFile();
+        setupServerWindow();
+        setupContent();
         setVisible(true);
+    }
+
+    private void setupServerWindow() {
+        setTitle("Server");
+        setSize(WIN_WIDTH,WIN_HEIGHT);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+    }
 
-        serverLog = new JTextArea();
+    private void setupContent() {
         serverLog.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(serverLog);
-
-
-        startBtn = new JButton("Start");
-        stopBtn = new JButton("Stop");
         stopBtn.setEnabled(false);
+
+        JScrollPane scrollPane = new JScrollPane(serverLog);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(startBtn);
+        buttonPanel.add(stopBtn);
+
+        add(scrollPane, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         startBtn.addActionListener(new ActionListener() {
             @Override
@@ -45,26 +59,24 @@ public class ServerWindow extends JFrame {
                 stopServer();
             }
         });
-
-        JPanel buttonPanel  = new JPanel();
-        buttonPanel.add(startBtn);
-        buttonPanel.add(stopBtn);
-
-        add(scrollPane, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
     }
 
     private void startServer() {
         isRunning = true;
+
+        // Sending message only to server chat
         logMessage("Server started.");
-        checkAndOrCreateHistoryFile();
+
         startBtn.setEnabled(false);
         stopBtn.setEnabled(true);
     }
 
     private void stopServer() {
-        isRunning = false;
+        // Sending message only to server chat
         logMessage("Server stopped.");
+
+        isRunning = false;
+
         startBtn.setEnabled(true);
         stopBtn.setEnabled(false);
     }
@@ -73,33 +85,31 @@ public class ServerWindow extends JFrame {
         return isRunning;
     }
 
-    public String getHISTORY_LOG_FILE() {
-        return HISTORY_LOG_FILE;
+    public String getPATH_TO_HISTORY_LOG_FILE() {
+        return PATH_TO_HISTORY_LOG_FILE;
     }
 
     public void logMessage(String message) {
         serverLog.append(message + "\n");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_LOG_FILE, true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PATH_TO_HISTORY_LOG_FILE, true))) {
             writer.write(message);
             writer.newLine();
         } catch (IOException e) {
             System.err.println("Error while saving messages into the file.");
             e.printStackTrace();
         }
-        updateClients(message);
     }
 
     private void checkAndOrCreateHistoryFile() {
-        File file = new File(HISTORY_LOG_FILE);
+        File file = new File(PATH_TO_HISTORY_LOG_FILE);
         if (file.exists()) {
-            System.out.println("Файл для хранения истории чата уже существует.");
+            System.out.println("The chat history file already exists.");
         } else {
             try {
-                if (file.createNewFile()) {
-                    System.out.println("Создан новый файл для хранения истории чата по пути: " + file.getPath());
-                } else {
-                    System.out.println("Не удалось создать файл для хранения истории чата.");
+                if (!file.createNewFile()) {
+                    System.err.println("Failed to create chat history file.");
                 }
+                System.out.println("A new file has been created to store chat history.\nPath to the file: " + file.getPath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -107,16 +117,27 @@ public class ServerWindow extends JFrame {
     }
 
     public void addClient(ClientGUI client) {
-        connectedClients.add(client);
+        clients.add(client);
     }
 
     public void removeClient(ClientGUI client) {
-        connectedClients.remove(client);
+        clients.remove(client);
     }
 
+    // Updating messages in client chat (only if client is connected to the server)
     private void updateClients(String message) {
-        for (ClientGUI client : connectedClients) {
-            client.updateChatHistory(message);
+        for (ClientGUI client : clients) {
+            if (client.isConnected()) {
+                client.updateChatHistory(message);
+            }
+        }
+    }
+
+    // Sending a message to the log and to the client chat at once (only if server is running)
+    public void receiveMessage(String message) {
+        if (isRunning) {
+            logMessage(message);
+            updateClients(message);
         }
     }
 }

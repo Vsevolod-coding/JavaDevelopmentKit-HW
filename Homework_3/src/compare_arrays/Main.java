@@ -22,7 +22,7 @@ public class Main {
             throw new IllegalArgumentException("Массивы должны быть одинакого размера!");
         }
         for (int i = 0; i < arr1.length; i++) {
-            if (!arr1[i].equals(arr2[i])) {
+            if (!arr1[i].getClass().getSimpleName().equals(arr2[i].getClass().getSimpleName())) {
                 return false;
             }
         }

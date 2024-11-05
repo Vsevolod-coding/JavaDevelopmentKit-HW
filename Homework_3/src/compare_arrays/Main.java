@@ -19,7 +19,7 @@ public class Main {
 
     private static  <T, U> boolean compareArrays(T[] arr1, U[] arr2) {
         if (arr1.length != arr2.length) {
-            throw new IllegalArgumentException("Массивы должны быть одинакого размера!");
+            throw new IllegalArgumentException("Массивы должны быть одинакового размера!");
         }
         for (int i = 0; i < arr1.length; i++) {
             if (!arr1[i].getClass().getSimpleName().equals(arr2[i].getClass().getSimpleName())) {

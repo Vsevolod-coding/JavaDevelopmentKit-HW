@@ -21,11 +21,11 @@ public class Employee {
      * @param experience опыт работы сотрудника в годах
      */
     public Employee(String name, long phoneNumber, int experience) {
-        if (experience < 0) {
-            throw new IllegalArgumentException("Стаж не может быть отрицательным.");
-        }
         if (phoneNumber < 0) {
             throw new IllegalArgumentException("Номер телефона не может быть отрицательным.");
+        }
+		if (experience < 0) {
+            throw new IllegalArgumentException("Стаж не может быть отрицательным.");
         }
         this.id = ++lastAssignedId;
         this.name = name;

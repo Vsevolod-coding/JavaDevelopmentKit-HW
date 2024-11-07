@@ -24,6 +24,7 @@ public class Employee {
         if (phoneNumber < 0) {
             throw new IllegalArgumentException("Номер телефона не может быть отрицательным.");
         }
+		
 		if (experience < 0) {
             throw new IllegalArgumentException("Стаж не может быть отрицательным.");
         }
